@@ -1,5 +1,8 @@
 from enum import Enum
-from fastapi import FastAPI
+from typing import List
+
+from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -40,8 +43,39 @@ post_db = [
 
 @app.get('/')
 def root():
-    # ваш код здесь
-    ...
+    return {}
 
-# ваш код здесь
-...
+
+@app.post('/post')
+def post():
+    return post_db[-1]
+
+
+@app.get('/dog')
+def get_dogs(kind: str) -> List[Dog]:
+    return filter(lambda dog: dog.kind == kind, dogs_db.values())
+
+
+@app.post('/dog')
+def post_dog(dog: Dog) -> Dog:
+    dogs_db[dog.pk] = dog
+
+    last_timestamp = post_db[-1]
+    post_db.append(Timestamp(id=last_timestamp.id + 1, timestamp=last_timestamp.timestamp + 2))
+    return dog
+
+
+@app.get('/dog/{pk}')
+def get_dog_by_pk(pk: int):
+    dog = dogs_db.get(pk)
+    if dog is not None:
+        return dog
+    raise HTTPException(status_code=404, detail='No such dog')
+
+
+@app.patch('/dog/{pk}')
+def path_dog_by_pk(pk: int, patch_dog: Dog):
+    dog = dogs_db.get(pk)
+    if dog is None:
+        raise HTTPException(status_code=404, detail='No such dog')
+    dogs_db[pk] = patch_dog
