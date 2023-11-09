@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import HTTPException
@@ -43,16 +43,18 @@ post_db = [
 
 @app.get('/')
 def root():
-    return {}
+    return
 
 
 @app.post('/post')
-def post():
+def get_post() -> Timestamp:
     return post_db[-1]
 
 
 @app.get('/dog')
-def get_dogs(kind: str) -> List[Dog]:
+def get_dogs(kind: Optional[DogType] = None) -> List[Dog]:
+    if kind is None:
+        return dogs_db.values()
     return filter(lambda dog: dog.kind == kind, dogs_db.values())
 
 
@@ -66,7 +68,7 @@ def post_dog(dog: Dog) -> Dog:
 
 
 @app.get('/dog/{pk}')
-def get_dog_by_pk(pk: int):
+def get_dog_by_pk(pk: int) -> Dog:
     dog = dogs_db.get(pk)
     if dog is not None:
         return dog
@@ -74,7 +76,7 @@ def get_dog_by_pk(pk: int):
 
 
 @app.patch('/dog/{pk}')
-def path_dog_by_pk(pk: int, patch_dog: Dog):
+def path_dog_by_pk(pk: int, patch_dog: Dog) -> Dog:
     dog = dogs_db.get(pk)
     if dog is None:
         raise HTTPException(status_code=404, detail='No such dog')
