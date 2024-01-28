@@ -1,0 +1,23 @@
+version: '2'
+
+services:
+  api:
+    build:
+      context: api
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=local
+    ports:
+      - "8080:8080"
+  bot:
+    build:
+      context: bot
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=local
+    env_file:
+      - .env
+    environment:
+      - API_HOST=api
+    depends_on:
+      - api
